@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  ohayoubaku-app:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - ohayoubaku-db
+    networks:
+      - ohayoubaku-network
+
+  ohayoubaku-web:
+    image: nginx:1.24.0-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - ohayoubaku-app
+    networks:
+      - ohayoubaku-network
+
+  ohayoubaku-db:
+    image: mysql:8.0.32
+    environment:
+      MYSQL_DATABASE: ohayoubaku
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: ohayoubaku
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ohayoubaku-db-data:/var/lib/mysql
+    networks:
+      - ohayoubaku-network
+
+  ohayoubaku-node:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    volumes:
+      - ./frontend:/var/www/html
+    working_dir: /var/www/html
+    ports:
+      - "5173:5173"
+    tty: true
+    networks:
+      - ohayoubaku-network
+
+volumes:
+  ohayoubaku-db-data:
+
+networks:
+  ohayoubaku-network:
+    driver: bridge
