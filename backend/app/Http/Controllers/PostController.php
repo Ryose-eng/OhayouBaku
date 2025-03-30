@@ -14,6 +14,18 @@ class PostController extends Controller
         return response()->json(Post::with('user')->latest()->get());
     }
 
+    // 特定の投稿を取得
+    public function show($id)
+    {
+        $post = Post::with('user')->find($id);
+
+        if ($post) {
+            return response()->json($post);
+        } else {
+            return response()->json(['message' => '投稿が見つかりません'], 404);
+        }
+    }
+
     // 投稿作成
     public function store(Request $request)
     {
@@ -26,6 +38,9 @@ class PostController extends Controller
             'body' => $request->body,
         ]);
 
-        return response()->json($post, 201);
+        return response()->json(
+            Post::with('user')->find($post->id), // 作成した投稿とその関連情報を返す
+            201
+        );
     }
 }

@@ -44,9 +44,23 @@ const Posts = () => {
     fetchPosts();
   }, [user, navigate, logout]);
 
-  const handlePostCreated = (newPost) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
-    fetchPosts();
+  const handlePostCreated = async (newPost) => {
+    const postId = newPost.id;
+  
+    try {
+      const response = await fetch(`http://localhost/api/posts/${postId}`, {
+        credentials: "include",
+      });
+  
+      if (response.ok) {
+        const newPostFromServer = await response.json();
+        setPosts(prevPosts => [newPostFromServer, ...prevPosts]);
+      } else {
+        console.error('新しい投稿の取得に失敗しました');
+      }
+    } catch (error) {
+      console.error("新しい投稿取得エラー:", error);
+    }
   };
 
   const handleLogout = () => {
