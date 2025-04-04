@@ -30,6 +30,18 @@ class VitalController extends Controller
 
     public function index()
     {
-        return response()->json(auth()->user()->vitals);
+        $user = auth()->user();
+    
+        if (!$user) {
+            return response()->json(['error' => '認証エラー'], 401);
+        }
+    
+        $vitals = $user->vitals()->get();
+    
+        return response()->json([
+            'user_id' => $user->id,
+            'vitals' => $vitals,
+        ]);
     }
+    
 }

@@ -179,6 +179,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
+  background-color: white;
   width: 100%;
   padding: 8px;
   border: 1px solid #b3e0ff;
@@ -208,6 +209,7 @@ const Select = styled.select`
 `;
 
 const TextArea = styled.textarea`
+  background-color: white;
   width: 100%;
   padding: 8px;
   border: 1px solid #b3e0ff;
