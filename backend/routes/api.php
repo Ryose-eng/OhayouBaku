@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\VitalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -25,6 +26,11 @@ Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']); 
 Route::middleware(['auth:sanctum'])->post('/posts', [PostController::class, 'store']);
 
+// バイタルのルートを認証ミドルウェアで保護
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/vitals', [VitalController::class, 'store']);  // バイタル登録
+    Route::get('/vitals', [VitalController::class, 'index']);   // バイタル一覧
+});
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/register', [RegisteredUserController::class, 'store']);

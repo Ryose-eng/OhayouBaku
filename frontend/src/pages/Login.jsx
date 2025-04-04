@@ -30,8 +30,8 @@ const Login = () => {
       const data = await response.json();
       
       if (response.ok && data.token) {
-        login(data.token);
-        navigate('/posts');
+        login(data.token); // トークンを保存してログイン状態にする
+        navigate('/posts'); // 成功したらpostsページにリダイレクト
       } else {
         setErrors(data.errors || { message: "ログインに失敗しました" });
       }

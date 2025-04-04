@@ -22,7 +22,6 @@ const Posts = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('れすぽんすでーた',data);
         setPosts(data);
       } else {
         // トークンが無効な場合、ログアウトさせる
