@@ -10,10 +10,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const API_URL = "http://localhost/api";
 
-const Dashboard = ({ token }) => {
+const Dashboard = () => {
   const [vitals, setVitals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
   const fetchVitals = async () => {
@@ -138,7 +138,7 @@ const Dashboard = ({ token }) => {
                       <DataItem>血圧: {vital.systolic}/{vital.diastolic} mmHg</DataItem>
                       <DataItem>脈拍: {vital.pulse} bpm</DataItem>
                       <DataItem>体温: {vital.temperature}℃</DataItem>
-                      <DataItem>O2: {vital.oxygen}%</DataItem>
+                      <DataItem>SpO2: {vital.oxygen}%</DataItem>
                       <DataItem>気分: {vital.mood === "happy" ? "😊" : vital.mood === "neutral" ? "😑" : "😣"}</DataItem>
                       {vital.note && <DataNote>{vital.note}</DataNote>}
                     </VitalData>

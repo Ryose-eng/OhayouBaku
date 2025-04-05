@@ -17,11 +17,7 @@ function App() {
             <Route path="/posts" element={<Posts />} />
             <Route path="/" element={<Navigate to="/posts" />} />
             <Route path="*" element={<Navigate to="/posts" />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard token={localStorage.getItem('token')} />
-              </ProtectedRoute>
-            } />
+            <Route path="/dashboard" element={<ProtectedRoute>< Dashboard /> </ProtectedRoute>} />
           </Routes>
         </div>
       </Router>
