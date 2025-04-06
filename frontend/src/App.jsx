@@ -5,6 +5,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Posts from './pages/Posts';
 import Dashboard from "./pages/Dashboard";
+import ChatRoom from "./pages/ChatRoom";
+import CreateChat from "./pages/CreateChat"
+
 
 function App() {
   return (
@@ -16,8 +19,10 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/" element={<Navigate to="/posts" />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/chat/create" element={<ProtectedRoute><CreateChat /></ProtectedRoute>} />
+            <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/posts" />} />
-            <Route path="/dashboard" element={<ProtectedRoute>< Dashboard /> </ProtectedRoute>} />
           </Routes>
         </div>
       </Router>

@@ -1,10 +1,45 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ user }) => {
-  // ユーザー名の最初の文字を取得（アバター用）
+  const { token } = useAuth();
+  const navigate = useNavigate();
   const userInitial = user?.name?.charAt(0) || '?';
+
+  const checkExistingChat = async () => {
+    try {
+      const response = await fetch('http://localhost/api/user-chat', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.chatId) {
+        return data.chatId; // chatIdを直接返す
+      }
+      return null;
+    } catch (error) {
+      console.error('チャット確認エラー:', error);
+      return null;
+    }
+  };
+
+  const handleChatClick = async (e) => {
+    e.preventDefault();
+    const chatId = await checkExistingChat(); // chatIdを直接受け取る
+    
+    if (chatId) {
+      navigate(`/chat/${chatId}`);
+    } else {
+      navigate('/chat/create');
+    }
+  };
 
   return (
     <SidebarContainer>
@@ -16,16 +51,29 @@ const Sidebar = ({ user }) => {
       <NavMenu>
         <NavList>
           <NavItem>
-            <NavLink to="/dashboard">ダッシュボード</NavLink>
+            <NavLink onClick={handleChatClick}>
+              チャット
+            </NavLink>
           </NavItem>
           <NavItem>
-            <NavLink to="/posts">投稿一覧</NavLink>
+            <StyledLink to="/dashboard">
+              バイタル記録
+            </StyledLink>
           </NavItem>
           <NavItem>
-            <NavLink to="/profile">プロフィール</NavLink>
+            <StyledLink to="/posts">
+              みんなの投稿
+            </StyledLink>
           </NavItem>
           <NavItem>
-            <NavLink to="/settings">設定</NavLink>
+            <StyledLink to="/profile">
+              プロフィール
+            </StyledLink>
+          </NavItem>
+          <NavItem>
+            <StyledLink to="/settings">
+              設定
+            </StyledLink>
           </NavItem>
         </NavList>
       </NavMenu>
@@ -79,7 +127,22 @@ const NavItem = styled.li`
   margin-bottom: 10px;
 `;
 
-const NavLink = styled(Link)`
+const NavLink = styled.a`
+  display: block;
+  padding: 10px 15px;
+  color: #b3e0ff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #34495e;
+    color: white;
+  }
+`;
+
+const StyledLink = styled(Link)`
   display: block;
   padding: 10px 15px;
   color: #b3e0ff;

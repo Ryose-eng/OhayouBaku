@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VitalController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -26,10 +27,14 @@ Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']); 
 Route::middleware(['auth:sanctum'])->post('/posts', [PostController::class, 'store']);
 
-// バイタルのルートを認証ミドルウェアで保護
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/vitals', [VitalController::class, 'store']);  // バイタル登録
     Route::get('/vitals', [VitalController::class, 'index']);   // バイタル一覧
+    Route::get('/user-chat', [ChatController::class, 'getUserChat']);
+    Route::post('/chat/create', [ChatController::class, 'create']);
+    Route::get('/chat/{chatId}', [ChatController::class, 'show']);
+    Route::post('/chat/message', [ChatController::class, 'storeMessage']);
+    Route::get('/chats', [ChatController::class, 'index']);
 });
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
