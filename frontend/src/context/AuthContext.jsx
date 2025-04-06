@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (response.ok) {
