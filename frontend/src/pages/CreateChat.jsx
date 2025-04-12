@@ -10,48 +10,44 @@ const CreateChat = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [status, setStatus] = useState('');
+  const [chatStatus, setChatStatus] = useState(null);
   const navigate = useNavigate();
-  const { user, token, logout } = useAuth();
-  console.log("user", user);
+  const { user, token } = useAuth();
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
+      return;
     }
+
+    // 初期表示時にチャットの状態を確認
+    checkChatStatus();
   }, [user, navigate]);
 
-  useEffect(() => {
-    // 初期表示時にチャットの状態を確認
-    const checkChatStatus = async () => {
-      try {
-        const response = await fetch('http://localhost/api/user-chat', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-        });
+  const checkChatStatus = async () => {
+    try {
+      const response = await fetch('http://localhost/api/user-chat', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
 
-        const data = await response.json();
-        if (data.success) {
-          if (data.status === 'pending') {
-            setStatus('pending');
-          } else if (data.status === 'active') {
-            navigate(`/chat/${data.chatId}`);
-          }
+      const data = await response.json();
+      if (data.success) {
+        if (data.status === 'active') {
+          navigate(`/chat/${data.chatId}`);
+        } else if (data.status === 'pending') {
+          setChatStatus({
+            status: 'pending',
+            message: '認証待ち中です。相手からの認証をお待ちください。'
+          });
         }
-      } catch (error) {
-        console.error('チャット状態確認エラー:', error);
       }
-    };
-
-    checkChatStatus();
-  }, [token, navigate]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+    } catch (error) {
+      console.error('チャット状態確認エラー:', error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -74,13 +70,16 @@ const CreateChat = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        if (data.status === 'pending') {
-          setStatus('pending');
-        } else {
+        if (data.status === 'active') {
           navigate(`/chat/${data.chatId}`);
+        } else {
+          setChatStatus({
+            status: 'pending',
+            message: data.message
+          });
         }
       } else {
-        setError(data.message || 'ユーザーが見つかりませんでした');
+        setError(data.message || 'エラーが発生しました');
       }
     } catch (error) {
       setError('エラーが発生しました。もう一度お試しください。');
@@ -89,18 +88,14 @@ const CreateChat = () => {
     }
   };
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <AppContainer>
-      <Header title="新規チャット" onLogout={handleLogout} />
+      <Header title="新規チャット" />
       <Sidebar user={user} />
       <MainContent>
         <div className="bg-white p-8 rounded shadow-md w-full max-w-md mx-auto">
           <h1 className="text-2xl font-bold mb-6 text-center">
-            {status === 'pending' ? 'チャット承認待ち' : '新しいチャットを開始'}
+            {chatStatus ? '認証状態' : '新しいチャットを開始'}
           </h1>
 
           {error && (
@@ -109,9 +104,10 @@ const CreateChat = () => {
             </div>
           )}
 
-          {status === 'pending' ? (
+          {chatStatus ? (
             <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-              チャットリクエストを送信しました。相手の承認をお待ちください。
+              <p>{chatStatus.message}</p>
+              <p className="mt-2">※相手も同じようにあなたのメールアドレスを入力する必要があります。</p>
               <button
                 onClick={() => navigate('/posts')}
                 className="w-full mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
@@ -123,7 +119,7 @@ const CreateChat = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label htmlFor="email" className="block text-gray-700 mb-2">
-                  チャット相手のメールアドレス
+                  {user.caregiver ? '被介護者' : '介護者'}のメールアドレス
                 </label>
                 <input
                   type="email"
@@ -140,7 +136,7 @@ const CreateChat = () => {
                 className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300"
                 disabled={loading}
               >
-                {loading ? 'チェック中...' : 'チャットを開始'}
+                {loading ? '処理中...' : 'チャットを開始'}
               </button>
             </form>
           )}

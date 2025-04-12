@@ -8,6 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [isCaregiver, setIsCaregiver] = useState(false);  // 介護者フラグ
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -30,17 +31,18 @@ const Register = () => {
           name, 
           email, 
           password, 
-          password_confirmation: passwordConfirmation 
+          password_confirmation: passwordConfirmation,
+          caregiver: isCaregiver  // 介護者フラグを送信
         }),
       });
 
       const data = await response.json();
       
       if (response.ok && data.token) {
-        login(data.token);
+        login(data.user, data.token);
         navigate('/posts');
       } else {
-        setErrors(data.errors || { message: "登録に失敗しました" });
+        setErrors(data.errors || { message: data.message });
       }
     } catch (error) {
       console.error("登録エラー:", error);
@@ -59,45 +61,41 @@ const Register = () => {
         
         <Form onSubmit={handleSubmit}>
           <FormGroup>
-            <Label htmlFor="name">名前</Label>
-            <Input 
-              id="name"
+            <Label>名前</Label>
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
-            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+            {errors.name && <ErrorText>{errors.name}</ErrorText>}
           </FormGroup>
 
           <FormGroup>
-            <Label htmlFor="email">メールアドレス</Label>
-            <Input 
-              id="email"
+            <Label>メールアドレス</Label>
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+            {errors.email && <ErrorText>{errors.email}</ErrorText>}
           </FormGroup>
 
           <FormGroup>
-            <Label htmlFor="password">パスワード</Label>
-            <Input 
-              id="password"
+            <Label>パスワード</Label>
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+            {errors.password && <ErrorText>{errors.password}</ErrorText>}
           </FormGroup>
 
           <FormGroup>
-            <Label htmlFor="password_confirmation">パスワード確認</Label>
-            <Input 
-              id="password_confirmation"
+            <Label>パスワード（確認）</Label>
+            <Input
               type="password"
               value={passwordConfirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
@@ -105,15 +103,24 @@ const Register = () => {
             />
           </FormGroup>
 
+          <FormGroup>
+            <CheckboxLabel>
+              <Checkbox
+                type="checkbox"
+                checked={isCaregiver}
+                onChange={(e) => setIsCaregiver(e.target.checked)}
+              />
+              介護者として登録する
+            </CheckboxLabel>
+          </FormGroup>
+
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "登録中..." : "登録"}
           </Button>
           
-          <LinkContainer>
-            <StyledLink to="/login">
-              既にアカウントをお持ちの方はログインしてください
-            </StyledLink>
-          </LinkContainer>
+          <LoginLink>
+            すでにアカウントをお持ちの方は<Link to="/login">こちら</Link>
+          </LoginLink>
         </Form>
       </FormCard>
     </Container>
@@ -179,6 +186,18 @@ const Input = styled.input`
   }
 `;
 
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  cursor: pointer;
+`;
+
+const Checkbox = styled.input`
+  cursor: pointer;
+`;
+
 const Button = styled.button`
   background-color: #4cb8e6;
   color: white;
@@ -207,18 +226,25 @@ const ErrorMessage = styled.div`
   margin-top: 2px;
 `;
 
-const LinkContainer = styled.div`
-  text-align: center;
-  margin-top: 15px;
+const ErrorText = styled.span`
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 2px;
 `;
 
-const StyledLink = styled(Link)`
-  color: #4cb8e6;
-  text-decoration: none;
+const LoginLink = styled.div`
+  text-align: center;
+  margin-top: 15px;
   font-size: 0.9rem;
-  
-  &:hover {
-    text-decoration: underline;
+  color: #4cb8e6;
+
+  a {
+    color: #4cb8e6;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 

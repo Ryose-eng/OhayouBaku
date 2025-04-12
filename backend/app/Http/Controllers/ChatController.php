@@ -21,63 +21,84 @@ class ChatController extends Controller
                 'email' => 'required|email|exists:users,email',
             ]);
 
-            // 自分自身とのチャットを防ぐ
-            if ($request->email === Auth::user()->email) {
+            $currentUser = Auth::user();
+            $partner = User::where('email', $request->email)->first();
+
+            if ($currentUser->id === $partner->id) {
                 return response()->json([
                     'success' => false,
                     'message' => '自分自身とチャットすることはできません。'
                 ], 400);
             }
 
-            $partner = User::where('email', $request->email)->first();
-            
-            if (!$partner) {
+            // 介護者と被介護者の関係性チェック
+            if (($currentUser->caregiver && $partner->caregiver) || 
+                (!$currentUser->caregiver && !$partner->caregiver)) {
                 return response()->json([
                     'success' => false,
-                    'message' => '指定されたユーザーが見つかりません。'
-                ], 404);
+                    'message' => '介護者と被介護者の組み合わせである必要があります。'
+                ], 400);
             }
 
             // 既存のチャットルームを検索
-            $existingChat = Chat::where(function($query) use ($partner) {
-                    $query->where('user1_id', Auth::id())
+            $existingChat = Chat::where(function($query) use ($currentUser, $partner) {
+                    $query->where('user1_id', $currentUser->id)
                         ->where('user2_id', $partner->id);
                 })
-                ->orWhere(function($query) use ($partner) {
+                ->orWhere(function($query) use ($currentUser, $partner) {
                     $query->where('user1_id', $partner->id)
-                        ->where('user2_id', Auth::id());
+                        ->where('user2_id', $currentUser->id);
                 })
                 ->first();
 
             if ($existingChat) {
                 if ($existingChat->status === 'pending') {
                     $existingChat->update(['status' => 'active']);
+                    
+                    $caregiver = $currentUser->caregiver ? $currentUser : $partner;
+                    $recipient = $currentUser->caregiver ? $partner : $currentUser;
+                    
+                    $caregiver->care_recipient_id = $recipient->id;
+                    $caregiver->save();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'chatId' => $existingChat->id,
+                        'status' => 'active',
+                        'message' => 'チャットルームが作成されました。'
+                    ]);
                 }
                 
                 return response()->json([
                     'success' => true,
                     'chatId' => $existingChat->id,
-                    'status' => 'active',
-                    'message' => 'チャットルームが見つかりました。'
+                    'status' => $existingChat->status,
+                    'message' => $existingChat->status === 'active' 
+                        ? 'チャットルームが作成されました。'
+                        : '認証待ち中です。相手からの認証をお待ちください。'
                 ]);
             }
 
-            // 新しいチャットルームを作成
+            // 新しいチャットルームを作成（pending状態）
             $chat = Chat::create([
-                'user1_id' => Auth::id(),
+                'user1_id' => $currentUser->id,
                 'user2_id' => $partner->id,
-                'status' => 'active'
+                'status' => 'pending'
             ]);
 
             return response()->json([
                 'success' => true,
                 'chatId' => $chat->id,
-                'status' => 'active',
-                'message' => 'チャットルームが作成されました。'
+                'status' => 'pending',
+                'message' => '認証待ち中です。相手からの認証をお待ちください。'
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Chat creation error: ' . $e->getMessage());
+            Log::error('Chat creation error:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'チャットルームの作成中にエラーが発生しました。'
@@ -234,17 +255,55 @@ class ChatController extends Controller
     public function getUserChat()
     {
         try {
-            $chat = Chat::where('user1_id', Auth::id())
-                ->orWhere('user2_id', Auth::id())
-                ->first();
+            $currentUser = Auth::user();
+            
+            // ユーザーの全てのチャットを取得
+            $chats = Chat::where(function($query) use ($currentUser) {
+                    $query->where('user1_id', $currentUser->id)
+                        ->orWhere('user2_id', $currentUser->id);
+                })
+                ->with(['user1', 'user2'])
+                ->get();
 
-            if ($chat) {
-                return response()->json([
-                    'success' => true,
-                    'chatId' => $chat->id,
-                    'status' => $chat->status,
-                    'message' => $chat->status === 'pending' ? '相手の承認待ちです' : null
-                ]);
+            foreach ($chats as $chat) {
+                // チャットの相手を特定
+                $partner = $chat->user1_id === $currentUser->id ? $chat->user2 : $chat->user1;
+                
+                // activeなチャットがある場合
+                if ($chat->status === 'active') {
+                    // 介護者と被介護者の関係を確認
+                    if (($currentUser->caregiver && !$partner->caregiver) || 
+                        (!$currentUser->caregiver && $partner->caregiver)) {
+                        
+                        // 介護者側の場合、care_recipient_idを確認
+                        if ($currentUser->caregiver && $currentUser->care_recipient_id === $partner->id) {
+                            return response()->json([
+                                'success' => true,
+                                'chatId' => $chat->id,
+                                'status' => 'active'
+                            ]);
+                        }
+                        
+                        // 被介護者側の場合、介護者のcare_recipient_idを確認
+                        if (!$currentUser->caregiver && $partner->care_recipient_id === $currentUser->id) {
+                            return response()->json([
+                                'success' => true,
+                                'chatId' => $chat->id,
+                                'status' => 'active'
+                            ]);
+                        }
+                    }
+                }
+                
+                // pending状態のチャットがある場合
+                if ($chat->status === 'pending') {
+                    return response()->json([
+                        'success' => true,
+                        'chatId' => $chat->id,
+                        'status' => 'pending',
+                        'message' => '認証待ち中です。相手からの認証をお待ちください。'
+                    ]);
+                }
             }
 
             return response()->json([
@@ -253,6 +312,11 @@ class ChatController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error in getUserChat:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'エラーが発生しました'

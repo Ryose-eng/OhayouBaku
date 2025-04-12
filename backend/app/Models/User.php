@@ -23,6 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'caregiver',
+        'care_recipient_id',
     ];
 
     /**
@@ -43,7 +45,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'caregiver' => 'boolean',
     ];
+
+    public function careRecipient()
+    {
+        return $this->belongsTo(User::class, 'care_recipient_id');
+    }
+
+    public function caregivers()
+    {
+        return $this->hasMany(User::class, 'care_recipient_id');
+    }
 
     public function vitals(): HasMany
     {

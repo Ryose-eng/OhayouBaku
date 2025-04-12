@@ -8,21 +8,24 @@ use Carbon\Carbon;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Event::where('user_id', auth()->id())
-            ->orderBy('start', 'asc')
-            ->get();
+        $targetUserId = $request->get('target_user_id');
+        
+        $events = Event::where('user_id', $targetUserId)->get();
+        
+        return response()->json($events);
     }
 
     public function store(Request $request)
     {
+        $targetUserId = $request->get('target_user_id');
+        
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start' => 'required|string',
-            'end' => 'required|string',
-            'all_day' => 'required|boolean'
+            'title' => 'required|string',
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
+            'all_day' => 'boolean'
         ]);
 
         if ($validated['all_day']) {
@@ -33,12 +36,9 @@ class EventController extends Controller
             $end = Carbon::createFromFormat('Y-m-d H:i:s', $validated['end']);
         }
 
-        $userId = auth()->id();
-
         $event = Event::create([
-            'user_id' => $userId,
+            'user_id' => $targetUserId,
             'title' => $validated['title'],
-            'description' => $validated['description'],
             'start' => $start,
             'end' => $end,
             'all_day' => $validated['all_day']

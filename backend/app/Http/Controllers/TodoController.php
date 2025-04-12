@@ -7,44 +7,69 @@ use Illuminate\Http\Request;
 
 class TodoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Todo::where('user_id', auth()->id())
+        $targetUserId = $request->get('target_user_id');
+        
+        $todos = Todo::where('user_id', $targetUserId)
             ->orderBy('created_at', 'desc')
             ->get();
+            
+        return response()->json($todos);
     }
 
     public function store(Request $request)
     {
+        $targetUserId = $request->get('target_user_id');
+        
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'completed' => 'boolean'
         ]);
 
-        $validated['user_id'] = auth()->id();
-        
-        try {
-            $todo = Todo::create($validated);
-            return response()->json($todo);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Todoの作成に失敗しました'], 500);
-        }
+        $todo = Todo::create([
+            'title' => $validated['title'],
+            'user_id' => $targetUserId,
+            'completed' => false
+        ]);
+
+        return response()->json($todo);
     }
 
     public function update(Request $request, Todo $todo)
     {
+        $targetUserId = $request->get('target_user_id');
+        
+        // 権限チェック
+        if ($todo->user_id != $targetUserId) {
+            return response()->json([
+                'message' => '権限がありません'
+            ], 403);
+        }
+
         $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'completed' => 'sometimes|boolean'
+            'completed' => 'required|boolean',
         ]);
 
         $todo->update($validated);
-        return $todo;
+
+        return response()->json($todo);
     }
 
-    public function destroy(Todo $todo)
+    public function destroy(Request $request, Todo $todo)
     {
+        $targetUserId = $request->get('target_user_id');
+        
+        // 権限チェック
+        if ($todo->user_id != $targetUserId) {
+            return response()->json([
+                'message' => '権限がありません'
+            ], 403);
+        }
+
         $todo->delete();
-        return response()->json(['message' => 'Todo deleted successfully']);
+
+        return response()->json([
+            'message' => 'Todoが削除されました'
+        ]);
     }
 } 

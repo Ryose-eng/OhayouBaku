@@ -31,6 +31,9 @@ const StyledModal = styled(Modal)`
 Modal.setAppElement('#root');
 
 const CalendarPage = () => {
+  const { user, token, logout, isCaregiver, hasCareRecipient } = useAuth();
+  const navigate = useNavigate();
+  const [authError, setAuthError] = useState(null);
   const [events, setEvents] = useState([]);
   const [todos, setTodos] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -42,25 +45,42 @@ const CalendarPage = () => {
     end: '',
     allDay: true
   });
-  const { user, token, logout } = useAuth();
-  const navigate = useNavigate();
   const calendarRef = React.useRef(null);
   const [newTodoTitle, setNewTodoTitle] = useState('');
   const [showTodoInput, setShowTodoInput] = useState(false);
   const [detailModalIsOpen, setDetailModalIsOpen] = useState(false);
 
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    if (user && isCaregiver && !hasCareRecipient) {
+      setAuthError('チャットから被介護者との認証を行ってください');
+    } else {
+      setAuthError(null);
+      fetchEvents();
+      fetchTodos();
+    }
+  }, [user, isCaregiver, hasCareRecipient, navigate]);
+
   const fetchEvents = async () => {
     try {
       const response = await fetch(`${API_URL}/events`, {
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
         },
+        credentials: 'include',
       });
-      
-      if (!response.ok) {
-        throw new Error("イベントの取得に失敗しました");
+
+      if (response.status === 403) {
+        const data = await response.json();
+        if (data.needsAuth) {
+          setAuthError('チャットから被介護者との認証を行ってください');
+          return;
+        }
       }
 
       const data = await response.json();
@@ -86,7 +106,7 @@ const CalendarPage = () => {
       
       setEvents(formattedEvents);
     } catch (error) {
-      console.error("イベントの取得エラー:", error);
+      console.error('Error fetching events:', error);
     }
   };
 
@@ -330,14 +350,24 @@ const CalendarPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    fetchEvents();
-    fetchTodos();
-  }, [user, navigate, token]);
+  // 認証エラーがある場合は早期リターン
+  if (authError) {
+    return (
+      <AppContainer>
+        <Header title="カレンダー" onLogout={logout} />
+        <Sidebar user={user} />
+        <MainContent>
+          <AuthErrorContainer>
+            <AuthErrorMessage>{authError}</AuthErrorMessage>
+            <AuthErrorButton onClick={() => navigate('/chat/create')}>
+              チャット認証へ進む
+            </AuthErrorButton>
+          </AuthErrorContainer>
+        </MainContent>
+        <Footer />
+      </AppContainer>
+    );
+  }
 
   return (
     <AppContainer>
@@ -494,7 +524,11 @@ const AppContainer = styled.div`
 const MainContent = styled.main`
   grid-area: main;
   padding: 20px;
-  overflow: auto; /* スクロールが必要な場合に表示 */
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  margin: 10px;
+  border-radius: 8px;
+  position: relative;
 `;
 
 const CalendarContainer = styled.div`
@@ -1031,6 +1065,42 @@ const EventTime = styled.div`
 const EventDescription = styled.p`
   margin: 16px 0;
   white-space: pre-wrap;
+`;
+
+// 新しいスタイルコンポーネントを追加
+const AuthErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+`;
+
+const AuthErrorMessage = styled.p`
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+`;
+
+const AuthErrorButton = styled.button`
+  background-color: #0078a8;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #005f85;
+  }
 `;
 
 export default CalendarPage; 
