@@ -61,6 +61,11 @@ const Sidebar = ({ user }) => {
             </StyledLink>
           </NavItem>
           <NavItem>
+            <StyledLink to="/calendar">
+              カレンダー
+            </StyledLink>
+          </NavItem>
+          <NavItem>
             <StyledLink to="/posts">
               みんなの投稿
             </StyledLink>

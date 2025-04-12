@@ -7,6 +7,7 @@ import Posts from './pages/Posts';
 import Dashboard from "./pages/Dashboard";
 import ChatRoom from "./pages/ChatRoom";
 import CreateChat from "./pages/CreateChat"
+import Calendar from './pages/Calendar';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/chat/create" element={<ProtectedRoute><CreateChat /></ProtectedRoute>} />
             <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/posts" />} />
           </Routes>
         </div>

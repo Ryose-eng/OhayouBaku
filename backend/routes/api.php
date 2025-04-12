@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\TodoController;
+use App\Http\Controllers\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +37,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/chat/{chatId}', [ChatController::class, 'show']);
     Route::post('/chat/message', [ChatController::class, 'storeMessage']);
     Route::get('/chats', [ChatController::class, 'index']);
+    Route::apiResource('todos', TodoController::class);
+    Route::apiResource('events', EventController::class);
 });
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
