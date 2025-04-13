@@ -62,7 +62,26 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        $event->delete();
-        return response()->json(['message' => 'Event deleted successfully']);
+        try {
+            // イベントが存在し、かつ現在のユーザーに関連付けられているか確認
+            if ($event && $event->user_id === request()->get('target_user_id')) {
+                $event->delete();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'イベントが正常に削除されました'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'イベントの削除権限がありません'
+            ], 403);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'イベントの削除中にエラーが発生しました'
+            ], 500);
+        }
     }
 } 

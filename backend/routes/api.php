@@ -33,8 +33,7 @@ Route::middleware(['auth:sanctum', 'caregiver.auth'])->group(function () {
     Route::get('/vitals', [VitalController::class, 'index']);
     Route::post('/vitals', [VitalController::class, 'store']);
     Route::apiResource('todos', TodoController::class);
-    Route::get('/events', [EventController::class, 'index']);
-    Route::post('/events', [EventController::class, 'store']);
+    Route::apiResource('events', EventController::class);
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
