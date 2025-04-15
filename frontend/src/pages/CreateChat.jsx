@@ -93,54 +93,46 @@ const CreateChat = () => {
       <Header title="新規チャット" />
       <Sidebar user={user} />
       <MainContent>
-        <div className="bg-white p-8 rounded shadow-md w-full max-w-md mx-auto">
-          <h1 className="text-2xl font-bold mb-6 text-center">
+        <FormContainer>
+          <FormTitle>
             {chatStatus ? '認証状態' : '新しいチャットを開始'}
-          </h1>
+          </FormTitle>
 
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <ErrorMessage>
               {error}
-            </div>
+            </ErrorMessage>
           )}
 
           {chatStatus ? (
-            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-              <p>{chatStatus.message}</p>
-              <p className="mt-2">※相手も同じようにあなたのメールアドレスを入力する必要があります。</p>
-              <button
-                onClick={() => navigate('/posts')}
-                className="w-full mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
-              >
+            <StatusContainer>
+              <StatusMessage>{chatStatus.message}</StatusMessage>
+              <InfoMessage>※相手も同じようにあなたのメールアドレスを入力する必要があります。</InfoMessage>
+              <Button onClick={() => navigate('/posts')}>
                 投稿一覧に戻る
-              </button>
-            </div>
+              </Button>
+            </StatusContainer>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-gray-700 mb-2">
+            <Form onSubmit={handleSubmit}>
+              <FormGroup>
+                <Label htmlFor="email">
                   {user.caregiver ? '被介護者' : '介護者'}のメールアドレス
-                </label>
-                <input
+                </Label>
+                <Input
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-              </div>
+              </FormGroup>
 
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300"
-                disabled={loading}
-              >
+              <Button type="submit" disabled={loading}>
                 {loading ? '処理中...' : 'チャットを開始'}
-              </button>
-            </form>
+              </Button>
+            </Form>
           )}
-        </div>
+        </FormContainer>
       </MainContent>
       <Footer />
     </AppContainer>
@@ -170,6 +162,100 @@ const MainContent = styled.main`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const FormContainer = styled.div`
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const FormTitle = styled.h1`
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #0078a8;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  font-weight: 500;
+  color: #333;
+`;
+
+const Input = styled.input`
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: #0078a8;
+    box-shadow: 0 0 0 2px rgba(0, 120, 168, 0.1);
+  }
+`;
+
+const Button = styled.button`
+  padding: 0.75rem;
+  background-color: #0078a8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #006691;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #dc2626;
+`;
+
+const StatusContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const StatusMessage = styled.p`
+  color: #0078a8;
+  font-size: 1.1rem;
+  text-align: center;
+`;
+
+const InfoMessage = styled.p`
+  color: #666;
+  font-size: 0.9rem;
+  text-align: center;
 `;
 
 export default CreateChat;
