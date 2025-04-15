@@ -16,6 +16,8 @@ const Dashboard = () => {
   const [authError, setAuthError] = useState(null);
   const { user, token, logout, isCaregiver, hasCareRecipient } = useAuth();
   const navigate = useNavigate();
+  const [showVitalModal, setShowVitalModal] = useState(false);
+  const [displayCount, setDisplayCount] = useState(7);
 
   useEffect(() => {
     if (user && isCaregiver && !hasCareRecipient) {
@@ -58,7 +60,14 @@ const Dashboard = () => {
   };
 
   const handleVitalAdded = (newVital) => {
-    setVitals(prevVitals => [newVital, ...prevVitals]);
+    // 新しいバイタルデータを追加する前にデータを整形
+    const formattedVital = {
+      ...newVital,
+      created_at: new Date().toISOString(), // ISO形式の日付文字列を追加
+    };
+    
+    setVitals(prevVitals => [formattedVital, ...prevVitals]);
+    setShowVitalModal(false);
   };
 
   const handleLogout = () => {
@@ -105,12 +114,12 @@ const Dashboard = () => {
         ) : (
           <>
             <Section>
-              <SectionTitle>バイタル登録</SectionTitle>
-              <VitalForm token={token} onVitalAdded={handleVitalAdded} />
-            </Section>
-            
-            <Section>
-              <SectionTitle>バイタルトレンド</SectionTitle>
+              <SectionHeader>
+                <SectionTitle>バイタルトレンド</SectionTitle>
+                <AddVitalButton onClick={() => setShowVitalModal(true)}>
+                  バイタル登録
+                </AddVitalButton>
+              </SectionHeader>
               <ChartContainer>
                 {vitals.length > 0 ? (
                   <>
@@ -154,23 +163,30 @@ const Dashboard = () => {
                 {isLoading ? (
                   <LoadingText>読み込み中...</LoadingText>
                 ) : vitals.length > 0 ? (
-                  <VitalsList>
-                    {vitals.map((vital) => (
-                      <VitalItem key={vital.id}>
-                        <VitalHeader>
-                          <VitalDate>{new Date(vital.created_at).toLocaleString()}</VitalDate>
-                        </VitalHeader>
-                        <VitalData>
-                          <DataItem>血圧: {vital.systolic}/{vital.diastolic} mmHg</DataItem>
-                          <DataItem>脈拍: {vital.pulse} bpm</DataItem>
-                          <DataItem>体温: {vital.temperature}℃</DataItem>
-                          <DataItem>SpO2: {vital.oxygen}%</DataItem>
-                          <DataItem>気分: {vital.mood === "happy" ? "😊" : vital.mood === "neutral" ? "😑" : "😣"}</DataItem>
-                          {vital.note && <DataNote>{vital.note}</DataNote>}
-                        </VitalData>
-                      </VitalItem>
-                    ))}
-                  </VitalsList>
+                  <>
+                    <VitalsList>
+                      {vitals.slice(0, displayCount).map((vital) => (
+                        <VitalItem key={vital.id}>
+                          <VitalHeader>
+                            <VitalDate>{new Date(vital.created_at).toLocaleString()}</VitalDate>
+                          </VitalHeader>
+                          <VitalData>
+                            <DataItem>血圧: {vital.systolic}/{vital.diastolic} mmHg</DataItem>
+                            <DataItem>脈拍: {vital.pulse} bpm</DataItem>
+                            <DataItem>体温: {vital.temperature}℃</DataItem>
+                            <DataItem>SpO2: {vital.oxygen}%</DataItem>
+                            <DataItem>気分: {vital.mood === "happy" ? "😊" : vital.mood === "neutral" ? "😑" : "😣"}</DataItem>
+                            {vital.note && <DataNote>{vital.note}</DataNote>}
+                          </VitalData>
+                        </VitalItem>
+                      ))}
+                    </VitalsList>
+                    {vitals.length > displayCount && (
+                      <ShowMoreButton onClick={() => setDisplayCount(vitals.length)}>
+                        もっと見る
+                      </ShowMoreButton>
+                    )}
+                  </>
                 ) : (
                   <NoDataMessage>バイタルデータがありません</NoDataMessage>
                 )}
@@ -180,6 +196,17 @@ const Dashboard = () => {
         )}
       </MainContent>
       <Footer />
+      {showVitalModal && (
+        <ModalOverlay>
+          <Modal>
+            <VitalForm 
+              token={token} 
+              onVitalAdded={handleVitalAdded}
+              onClose={() => setShowVitalModal(false)}
+            />
+          </Modal>
+        </ModalOverlay>
+      )}
     </AppContainer>
   );
 };
@@ -204,11 +231,17 @@ const MainContent = styled.main`
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   margin: 10px;
   border-radius: 8px;
-  position: relative;
 `;
 
 const Section = styled.section`
   margin-bottom: 30px;
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 `;
 
 const SectionTitle = styled.h2`
@@ -314,13 +347,12 @@ const AuthErrorContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  width: 100%;
-  max-width: 400px;
 `;
 
 const AuthErrorMessage = styled.p`
@@ -341,6 +373,63 @@ const AuthErrorButton = styled.button`
 
   &:hover {
     background-color: #005f85;
+  }
+`;
+
+const AddVitalButton = styled.button`
+  background-color: #0078a8;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #005f85;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const Modal = styled.div`
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+`;
+
+const ShowMoreButton = styled.button`
+  display: block;
+  width: 200px;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #0078a8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #006291;
   }
 `;
 

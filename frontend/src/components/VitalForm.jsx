@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const API_URL = "http://localhost/api"; // LaravelのAPIエンドポイント
 
-const VitalForm = ({ token, onVitalAdded }) => {
+const VitalForm = ({ token, onVitalAdded, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vital, setVital] = useState({
     systolic: "",
@@ -29,18 +29,8 @@ const VitalForm = ({ token, onVitalAdded }) => {
       });
       
       if (response.ok) {
-        const newVital = await response.json();
-        onVitalAdded(newVital);  // 新しいバイタルデータを親コンポーネントに渡す
-        // フォームをリセット
-        setVital({
-          systolic: "",
-          diastolic: "",
-          pulse: "",
-          temperature: "",
-          oxygen: "",
-          mood: "happy",
-          note: "",
-        });
+        const result = await response.json();
+        onVitalAdded(result.vital);  // バックエンドから返された整形済みデータを使用
       } else {
         throw new Error("登録に失敗しました");
       }
@@ -64,6 +54,7 @@ const VitalForm = ({ token, onVitalAdded }) => {
 
   return (
     <FormContainer onSubmit={handleSubmit}>
+      <CloseButton onClick={onClose}>×</CloseButton>
       <FormGroup>
         <Label>
           最高血圧:
@@ -160,11 +151,13 @@ const VitalForm = ({ token, onVitalAdded }) => {
 };
 
 const FormContainer = styled.form`
+  position: relative;
   background-color: #e6f7ff;
-  padding: 20px;
+  padding: 40px 20px 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 20px;
+  max-height: calc(90vh - 140px); // モーダル内でのスクロールのため高さを制限
+  overflow-y: auto; // モーダル内でスクロール可能に
 `;
 
 const FormGroup = styled.div`
@@ -180,6 +173,7 @@ const Label = styled.label`
 
 const Input = styled.input`
   background-color: white;
+  color: grey;
   width: 100%;
   padding: 8px;
   border: 1px solid #b3e0ff;
@@ -210,6 +204,7 @@ const Select = styled.select`
 
 const TextArea = styled.textarea`
   background-color: white;
+  color: grey;
   width: 100%;
   padding: 8px;
   border: 1px solid #b3e0ff;
@@ -242,6 +237,22 @@ const SubmitButton = styled.button`
   &:disabled {
     background-color: #b3e0ff;
     cursor: not-allowed;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: -5px;
+  right: 0px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #0078a8;
+  z-index: 1; // 確実に最前面に表示
+  
+  &:hover {
+    color: #006291;
   }
 `;
 

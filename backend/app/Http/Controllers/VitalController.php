@@ -17,6 +17,9 @@ class VitalController extends Controller
             'diastolic' => $request->diastolic,
             'pulse' => $request->pulse,
             'temperature' => $request->temperature,
+            'oxygen' => $request->oxygen,
+            'mood' => $request->mood,
+            'note' => $request->note,
             'user_id' => $targetUserId
         ]);
 
@@ -33,7 +36,9 @@ class VitalController extends Controller
         $targetUserId = $request->get('target_user_id');
         $user = \App\Models\User::findOrFail($targetUserId);
         
-        $vitals = $user->vitals()->get();
+        $vitals = $user->vitals()
+            ->orderBy('created_at', 'desc') // 作成日時の降順（最新が上）
+            ->get();
 
         return response()->json([
             'user_id' => $user->id,
