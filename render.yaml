@@ -1,18 +1,16 @@
 services:
-  # バックエンドAPI
   - type: web
-    name: ohayoubaku-api
+    name: ohayoubaku-backend
     env: docker
     dockerfilePath: ./docker/php/Dockerfile.prod
+    buildDirectory: ./backend
     buildCommand: |
-      cp .env.example .env
-      composer install --no-dev --optimize-autoloader
-      php artisan key:generate
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+      composer install --no-dev && \
+      php artisan key:generate && \
+      php artisan migrate
     envVars:
+      - key: APP_KEY
+        generateValue: true
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
@@ -24,9 +22,7 @@ services:
           name: ohayoubaku-db
           property: host
       - key: DB_PORT
-        fromDatabase:
-          name: ohayoubaku-db
-          property: port
+        value: 5432
       - key: DB_DATABASE
         fromDatabase:
           name: ohayoubaku-db
@@ -40,18 +36,16 @@ services:
           name: ohayoubaku-db
           property: password
 
-  # フロントエンド
   - type: web
     name: ohayoubaku-frontend
-    env: node
+    env: static
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm run preview
+    staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
-        value: https://ohayoubaku-api.onrender.com
+        value: https://ohayoubaku-backend.onrender.com
 
 databases:
   - name: ohayoubaku-db
-    databaseName: ohayoubaku
-    user: ohayoubaku
-    plan: free 
+    plan: free
+    ipAllowList: []
