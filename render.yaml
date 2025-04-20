@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: backend
+    env: docker
+    dockerfilePath: ./docker/php/Dockerfile.prod
+    buildCommand: composer install --no-dev && php artisan key:generate && php artisan migrate
+    startCommand: php artisan serve
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: mydb
+          property: host
+      - key: DB_DATABASE
+        fromDatabase:
+          name: mydb
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: mydb
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mydb
+          property: password
+
+  - type: web
+    name: frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://your-backend-domain.onrender.com
+
+databases:
+  - name: mydb
+    ipAllowList: [] 
