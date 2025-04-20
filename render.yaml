@@ -9,15 +9,23 @@ services:
       cd backend && \
       cp .env.example .env && \
       composer install --no-dev --optimize-autoloader && \
-      php artisan key:generate && \
+      php artisan key:generate --force && \
       php artisan config:cache && \
       php artisan route:cache && \
       php artisan view:cache
     envVars:
+      - key: APP_NAME
+        value: OhayouBaku
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
+      - key: APP_URL
+        value: https://ohayoubaku-backend-q8b6.onrender.com
+      - key: FRONTEND_URL
+        value: https://ohayoubaku-frontend-q8b6.onrender.com
+      - key: APP_KEY
+        generateValue: true
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -40,6 +48,20 @@ services:
         fromDatabase:
           name: ohayoubaku-db
           property: password
+      - key: SESSION_DRIVER
+        value: file
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: SESSION_DOMAIN
+        value: render.com
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: ohayoubaku-frontend-q8b6.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://ohayoubaku-frontend-q8b6.onrender.com
+      - key: INTERNAL_DATABASE_URL
+        fromDatabase:
+          name: ohayoubaku-db
+          property: connectionString
 
   # フロントエンド
   - type: web
@@ -50,7 +72,9 @@ services:
     startCommand: cd frontend && npm run preview
     envVars:
       - key: VITE_API_URL
-        value: https://ohayoubaku-backend.onrender.com
+        value: https://ohayoubaku-backend-q8b6.onrender.com
+      - key: VITE_WS_URL
+        value: wss://ohayoubaku-frontend-q8b6.onrender.com
 
 databases:
   - name: ohayoubaku-db
