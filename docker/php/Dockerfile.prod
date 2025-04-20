@@ -1,0 +1,48 @@
+FROM php:8.2.13-fpm
+
+WORKDIR /var/www/html
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libpq-dev \  # PostgreSQL用のライブラリを追加
+    zip \
+    unzip
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
+
+# Install Composer
+COPY --from=composer:2.6.5 /usr/bin/composer /usr/bin/composer
+
+# Copy application files
+COPY ./backend /var/www/html
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Generate application key
+RUN php artisan key:generate
+
+# Cache configuration
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# Expose port 8000
+EXPOSE 8000
+
+# Start PHP built-in server
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"] 
