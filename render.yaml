@@ -2,6 +2,7 @@ services:
   # バックエンドAPI
   - type: web
     name: ohayoubaku-backend
+    plan: free
     env: docker
     dockerfilePath: docker/php/Dockerfile.prod
     buildCommand: |
@@ -43,6 +44,7 @@ services:
   # フロントエンド
   - type: web
     name: ohayoubaku-frontend
+    plan: free
     env: node
     buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm run preview
@@ -55,3 +57,4 @@ databases:
     databaseName: ohayoubaku
     user: ohayoubaku
     plan: free
+    ipAllowList: []
