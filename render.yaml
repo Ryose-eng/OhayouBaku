@@ -2,9 +2,13 @@ services:
   - type: web
     name: backend
     env: docker
-    dockerfilePath: ./docker/php/Dockerfile.prod
-    buildCommand: composer install --no-dev && php artisan key:generate && php artisan migrate
-    startCommand: php artisan serve
+    dockerfilePath: docker/php/Dockerfile.prod
+    buildCommand: |
+      cd backend && \
+      composer install --no-dev && \
+      php artisan key:generate && \
+      php artisan migrate
+    startCommand: cd backend && php artisan serve --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_KEY
         generateValue: true
@@ -28,8 +32,8 @@ services:
   - type: web
     name: frontend
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run preview
     envVars:
       - key: VITE_API_URL
         value: https://your-backend-domain.onrender.com
