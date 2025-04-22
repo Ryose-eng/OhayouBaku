@@ -1,5 +1,8 @@
 FROM php:8.2-fpm
 
+# Install Nginx
+RUN apt-get update && apt-get install -y nginx
+
 WORKDIR /var/www/html
 
 # Install system dependencies
@@ -46,8 +49,13 @@ RUN php artisan config:cache \
 # PHP configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Expose port 9000
-EXPOSE 9000
+# Nginx設定
+COPY docker/nginx/default.conf /etc/nginx/sites-available/default
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
-# Start PHP-FPM
-CMD ["php-fpm"] 
+# Start Nginx and PHP-FPM
+CMD sh -c "nginx && php-fpm"
+
+# Expose port 80 for Nginx
+EXPOSE 80
