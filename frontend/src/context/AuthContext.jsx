@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         try {
-          const response = await fetch('http://localhost/api/user', {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user`, {
             headers: {
               'Authorization': `Bearer ${storedToken}`,
               'Accept': 'application/json',

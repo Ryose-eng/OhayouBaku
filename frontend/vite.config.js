@@ -14,7 +14,7 @@ export default defineConfig({
 
         const io = new Server(server.httpServer, {
           cors: {
-            origin: ["http://localhost:5173", "http://localhost"],
+            origin: [process.env.VITE_API_URL || "http://localhost:5173", process.env.FRONTEND_URL || "http://localhost"],
             methods: ["GET", "POST"],
             credentials: true
           }
@@ -33,7 +33,7 @@ export default defineConfig({
           socket.on('sendMessage', async (messageData) => {
             console.log('メッセージを受信:', messageData)
             try {
-              const response = await fetch('http://ohayoubaku-web/api/chat/message', {
+              const response = await fetch(`${process.env.VITE_API_URL}/api/chat/message`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${messageData.token}`,

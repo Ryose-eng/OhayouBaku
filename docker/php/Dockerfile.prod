@@ -1,8 +1,5 @@
 FROM php:8.2-fpm
 
-# Install Nginx
-RUN apt-get update && apt-get install -y nginx
-
 WORKDIR /var/www/html
 
 # Install system dependencies
@@ -16,46 +13,24 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Copy application files
-COPY ./backend .
+COPY backend/ .
 
-# Copy .env.example to .env
-COPY ./backend/.env.example ./.env
+# Install composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Expose port 8000 for PHP's built-in server
+EXPOSE 8000
 
-# Generate application key
-RUN php artisan key:generate --force
-
-# Cache configuration
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# PHP configuration
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
-
-# Nginx設定
-COPY docker/nginx/default.conf /etc/nginx/sites-available/default
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log
-
-# Start Nginx and PHP-FPM
-CMD sh -c "nginx && php-fpm"
-
-# Expose port 80 for Nginx
-EXPOSE 80
+# Start PHP's built-in server
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

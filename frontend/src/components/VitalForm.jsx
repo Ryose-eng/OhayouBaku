@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styled from 'styled-components';
 
-const API_URL = "http://localhost/api"; // LaravelのAPIエンドポイント
+const API_URL = import.meta.env.VITE_API_URL;
 
 const VitalForm = ({ token, onVitalAdded, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

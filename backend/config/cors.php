@@ -18,7 +18,7 @@ return [
     'paths' => ['api/*'],
     'allowed_methods' => ['*'],
     'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173')
+        env('FRONTEND_URL', env('APP_ENV') === 'local' ? 'http://localhost:5173' : null)
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],

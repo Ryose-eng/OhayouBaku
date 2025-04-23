@@ -26,7 +26,7 @@ const CreateChat = () => {
 
   const checkChatStatus = async () => {
     try {
-      const response = await fetch('http://localhost/api/user-chat', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user-chat`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -56,7 +56,7 @@ const CreateChat = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost/api/chat/create', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/create`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

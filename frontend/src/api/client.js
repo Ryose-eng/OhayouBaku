@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const WS_URL = import.meta.env.VITE_WS_URL;
 
 export const apiClient = {
   get: async (endpoint, token = null) => {
@@ -18,7 +19,7 @@ export const apiClient = {
     return response;
   },
 
-  post: async (endpoint, data, token = null) => {
+  post: async (endpoint, data = null, token = null) => {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

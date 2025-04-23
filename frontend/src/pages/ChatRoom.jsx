@@ -8,6 +8,8 @@ import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import styled from 'styled-components';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ChatRoom = () => {
   const { chatId } = useParams();
   const { user, token } = useAuth();
@@ -23,7 +25,7 @@ const ChatRoom = () => {
   useEffect(() => {
     const initChat = async () => {
       try {
-        const response = await fetch(`http://localhost/api/chat/${chatId}`, {
+        const response = await fetch(`${API_URL}/api/chat/${chatId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
@@ -37,7 +39,7 @@ const ChatRoom = () => {
           setMessages(data.messages);
 
           // Socket.IO接続を修正
-          const newSocket = io('ws://localhost:5173', {
+          const newSocket = io(import.meta.env.VITE_WS_URL, {
             transports: ['websocket'],
             query: { chatId },
             withCredentials: true

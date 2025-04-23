@@ -10,7 +10,7 @@ const Sidebar = ({ user }) => {
 
   const checkExistingChat = async () => {
     try {
-      const response = await fetch('http://localhost/api/user-chat', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user-chat`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',

@@ -16,7 +16,7 @@ const Posts = () => {
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost/api/posts", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
         credentials: "include",
       });
 
@@ -51,7 +51,7 @@ const Posts = () => {
     const postId = newPost.id;
   
     try {
-      const response = await fetch(`http://localhost/api/posts/${postId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`, {
         credentials: "include",
       });
   
