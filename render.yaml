@@ -76,7 +76,7 @@ services:
       - key: VITE_WS_URL
         value: wss://ohayoubaku-frontend-q8b6.onrender.com
       - key: PORT
-        value: 8080
+        value: "4173"
 
 databases:
   - name: ohayoubaku-db

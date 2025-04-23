@@ -78,9 +78,17 @@ export default defineConfig({
       }
     }
   ],
+  preview: {
+    host: true,
+    port: process.env.PORT || 4173,
+    allowedHosts: [
+      'ohayoubaku-frontend-q8b6.onrender.com',
+      '.onrender.com'
+    ]
+  },
   server: {
     host: true,
-    port: 5173,
+    port: process.env.PORT || 5173,
     watch: {
       usePolling: true
     }
