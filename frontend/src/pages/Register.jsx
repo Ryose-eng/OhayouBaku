@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styled from 'styled-components';
+import { apiClient } from '../api/client';
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -23,17 +24,13 @@ const Register = () => {
     setErrors({});
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ 
-          name, 
-          email, 
-          password, 
-          password_confirmation: passwordConfirmation,
-          caregiver: isCaregiver  // 介護者フラグを送信
-        }),
+      // apiClientを使用してリクエストを送信
+      const response = await apiClient.post('/register', { 
+        name, 
+        email, 
+        password, 
+        password_confirmation: passwordConfirmation,
+        caregiver: isCaregiver
       });
 
       const data = await response.json();

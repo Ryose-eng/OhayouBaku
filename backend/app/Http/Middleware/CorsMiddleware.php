@@ -9,10 +9,17 @@ class CorsMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        return $next($request)
-            ->header('Access-Control-Allow-Origin', env('CORS_ALLOWED_ORIGINS'))
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-            ->header('Access-Control-Allow-Credentials', 'true');
+        if ($request->getMethod() === 'OPTIONS') {
+            $response = response()->json('OK', 200);
+        } else {
+            $response = $next($request);
+        }
+        
+        $response->headers->set('Access-Control-Allow-Origin', 'https://ohayoubaku-frontend-q8b6.onrender.com');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+        $response->headers->set('Access-Control-Allow-Credentials', 'true');
+        
+        return $response;
     }
 }

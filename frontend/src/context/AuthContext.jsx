@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
             headers: {
               'Authorization': `Bearer ${storedToken}`,
               'Accept': 'application/json',
+              'Content-Type': 'application/json',
             },
             credentials: 'include',
           });

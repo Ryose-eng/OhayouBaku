@@ -18,7 +18,8 @@ return [
     'paths' => ['api/*'],
     'allowed_methods' => ['*'],
     'allowed_origins' => [
-        env('FRONTEND_URL', env('APP_ENV') === 'local' ? 'http://localhost:5173' : null)
+        env('FRONTEND_URL', 'http://localhost:5173'),
+        'https://ohayoubaku-frontend-q8b6.onrender.com'
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],

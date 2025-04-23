@@ -12,8 +12,7 @@ export const apiClient = {
     }
 
     const response = await fetch(`${API_URL}/api${endpoint}`, {
-      headers,
-      credentials: 'include'
+      headers
     });
     
     return response;
