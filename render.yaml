@@ -26,28 +26,6 @@ services:
         value: https://ohayoubaku-frontend-q8b6.onrender.com
       - key: APP_KEY
         generateValue: true
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_HOST
-        fromDatabase:
-          name: ohayoubaku-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: ohayoubaku-db
-          property: port
-      - key: DB_DATABASE
-        fromDatabase:
-          name: ohayoubaku-db
-          property: database
-      - key: DB_USERNAME
-        fromDatabase:
-          name: ohayoubaku-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: ohayoubaku-db
-          property: password
       - key: SESSION_DRIVER
         value: file
       - key: SESSION_LIFETIME
@@ -58,10 +36,6 @@ services:
         value: ohayoubaku-frontend-q8b6.onrender.com
       - key: CORS_ALLOWED_ORIGINS
         value: https://ohayoubaku-frontend-q8b6.onrender.com
-      - key: INTERNAL_DATABASE_URL
-        fromDatabase:
-          name: ohayoubaku-db
-          property: connectionString
 
   # フロントエンド
   - type: web
