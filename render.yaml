@@ -7,11 +7,16 @@ services:
     dockerfilePath: docker/php/Dockerfile.prod
     buildCommand: |
       cd backend && \
+      echo "Starting build..." && \
+      composer install --no-dev --optimize-autoloader && \
+      echo "Composer install completed" && \
       cp .env.example .env && \
-      php artisan key:generate --force
+      echo "Env file copied"
     startCommand: |
       cd backend && \
+      echo "Starting migration..." && \
       php artisan migrate --force && \
+      echo "Migration completed" && \
       php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_NAME
@@ -24,8 +29,6 @@ services:
         value: https://ohayoubaku-backend-q8b6.onrender.com
       - key: FRONTEND_URL
         value: https://ohayoubaku-frontend-q8b6.onrender.com
-      - key: APP_KEY
-        generateValue: true
       - key: SESSION_DRIVER
         value: file
       - key: SESSION_LIFETIME
