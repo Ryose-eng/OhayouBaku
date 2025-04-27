@@ -28,7 +28,8 @@
     "recharts": "^2.15.2",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "styled-components": "^6.1.16"
+    "styled-components": "^6.1.16",
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

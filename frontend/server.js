@@ -9,13 +9,17 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: [
-      process.env.VITE_API_URL,
-      'ohayoubaku-frontend-q8b6.onrender.com',
-      '.onrender.com'
+      'https://ohayoubaku-frontend-q8b6.onrender.com',
+      'https://ohayoubaku-backend-q8b6.onrender.com'
     ],
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  path: '/socket.io/',
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,  // Engine.IO v3のサポート
+  pingTimeout: 60000,  // タイムアウト設定
+  pingInterval: 25000  // ping間隔
 });
 
 // 静的ファイルの配信
@@ -80,6 +84,6 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 4173;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 }); 

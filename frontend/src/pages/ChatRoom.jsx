@@ -39,32 +39,37 @@ const ChatRoom = () => {
           setMessages(data.messages);
 
           // Socket.IO接続を修正
-          const newSocket = io(import.meta.env.VITE_WS_URL, {
-            transports: ['websocket'],
+          const socket = io(`${import.meta.env.VITE_WS_URL}`, {
+            path: '/socket.io',
+            transports: ['websocket', 'polling'],  // サーバーと同じ設定
             query: { chatId },
-            withCredentials: true
+            auth: { token },
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 20000
           });
 
-          newSocket.on('connect', () => {
-            console.log('Socket connected successfully with ID:', newSocket.id);
+          socket.on('connect', () => {
+            console.log('Socket connected successfully with ID:', socket.id);
           });
 
-          newSocket.on('connect_error', (error) => {
+          socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
           });
 
-          newSocket.on('error', (error) => {
+          socket.on('error', (error) => {
             console.error('Socket error:', error);
           });
 
-          newSocket.on('disconnect', (reason) => {
+          socket.on('disconnect', (reason) => {
             console.log('Socket disconnected:', reason);
             if (reason === 'io server disconnect') {
-              newSocket.connect();
+              socket.connect();
             }
           });
 
-          newSocket.on('receiveMessage', (message) => {
+          socket.on('receiveMessage', (message) => {
             console.log('新しいメッセージを受信:', message);
             setMessages(prevMessages => {
               const messageExists = prevMessages.some(msg => msg.id === message.id);
@@ -76,21 +81,21 @@ const ChatRoom = () => {
             });
           });
 
-          newSocket.on('messageError', (error) => {
+          socket.on('messageError', (error) => {
             console.error('Message error details:', error);
             setError(error.error + (error.details ? `: ${error.details}` : ''));
           });
 
           // デバッグ用のイベントリスナー
-          newSocket.onAny((eventName, ...args) => {
+          socket.onAny((eventName, ...args) => {
             console.log('送信したイベント:', eventName, args);
           });
 
-          setSocket(newSocket);
+          setSocket(socket);
           setLoading(false);
 
           return () => {
-            if (newSocket) newSocket.disconnect();
+            if (socket) socket.disconnect();
           };
         } else {
           setError('チャットルームが見つかりませんでした');

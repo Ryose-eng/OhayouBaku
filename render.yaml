@@ -47,12 +47,12 @@ services:
     buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && node server.js
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_URL
         value: https://ohayoubaku-backend-q8b6.onrender.com
       - key: VITE_WS_URL
         value: wss://ohayoubaku-frontend-q8b6.onrender.com
-      - key: PORT
-        value: "4173"
 
 databases:
   - name: ohayoubaku-db
