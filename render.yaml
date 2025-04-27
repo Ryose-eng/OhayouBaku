@@ -8,18 +8,9 @@ services:
     buildCommand: |
       cd backend && \
       composer install --no-dev --optimize-autoloader && \
-      cp .env.example .env
-    startCommand: |
-      cd backend && \
-      echo "=== データベース接続テスト ===" && \
-      php artisan db:show && \
-      echo "=== マイグレーション開始 ===" && \
-      php artisan migrate:status && \
-      php artisan config:cache && \
-      echo "=== マイグレーション実行 ===" && \
-      php artisan migrate --force || { echo "Migration failed"; exit 1; } && \
-      echo "=== マイグレーション完了 ===" && \
-      
+      cp .env.example .env && \
+      chmod +x init.sh
+    startCommand: bash /var/www/html/init.sh
     envVars:
       - key: APP_NAME
         value: OhayouBaku
