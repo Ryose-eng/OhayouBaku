@@ -7,19 +7,19 @@ services:
     dockerfilePath: docker/php/Dockerfile.prod
     buildCommand: |
       cd backend && \
-      echo "Starting build..." && \
       composer install --no-dev --optimize-autoloader && \
-      echo "Composer install completed" && \
-      cp .env.example .env && \
-      php artisan migrate --force
+      cp .env.example .env
     startCommand: |
-      set -x && \
       cd backend && \
-      php artisan config:clear | tee /dev/stderr && \
-      php artisan cache:clear | tee /dev/stderr && \
-      php artisan migrate:status --verbose | tee /dev/stderr && \
-      php artisan migrate --force -v | tee /dev/stderr && \
-      php artisan serve --host=0.0.0.0 --port=$PORT
+      echo "=== データベース接続テスト ===" && \
+      php artisan db:show && \
+      echo "=== マイグレーション開始 ===" && \
+      php artisan migrate:status && \
+      php artisan config:cache && \
+      echo "=== マイグレーション実行 ===" && \
+      php artisan migrate --force || { echo "Migration failed"; exit 1; } && \
+      echo "=== マイグレーション完了 ===" && \
+      
     envVars:
       - key: APP_NAME
         value: OhayouBaku
