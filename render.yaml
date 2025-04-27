@@ -11,12 +11,14 @@ services:
       composer install --no-dev --optimize-autoloader && \
       echo "Composer install completed" && \
       cp .env.example .env && \
-      echo "Env file copied"
+      php artisan migrate --force
     startCommand: |
+      set -x && \
       cd backend && \
-      echo "Starting migration..." && \
-      php artisan migrate --force && \
-      echo "Migration completed" && \
+      php artisan config:clear | tee /dev/stderr && \
+      php artisan cache:clear | tee /dev/stderr && \
+      php artisan migrate:status --verbose | tee /dev/stderr && \
+      php artisan migrate --force -v | tee /dev/stderr && \
       php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_NAME
@@ -24,7 +26,11 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
-        value: false
+        value: true
+      - key: LOG_LEVEL
+        value: debug
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_URL
         value: https://ohayoubaku-backend-q8b6.onrender.com
       - key: FRONTEND_URL
@@ -57,7 +63,7 @@ services:
 
 databases:
   - name: ohayoubaku-db
-    databaseName: ohayoubaku
+    databaseName: ohayoubaku_px40
     user: ohayoubaku
     plan: free
     ipAllowList: []
