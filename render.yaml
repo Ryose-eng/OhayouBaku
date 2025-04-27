@@ -10,7 +10,10 @@ services:
       composer install --no-dev --optimize-autoloader && \
       cp .env.example .env && \
       chmod +x init.sh
-    startCommand: bash /var/www/html/init.sh
+    startCommand: |
+      echo "Starting initialization script..." && \
+      cd /var/www/html && \
+      bash init.sh
     envVars:
       - key: APP_NAME
         value: OhayouBaku
