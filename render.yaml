@@ -8,12 +8,11 @@ services:
     buildCommand: |
       cd backend && \
       composer install --no-dev --optimize-autoloader && \
-      cp .env.example .env && \
-      chmod +x init.sh
+      cp .env.example .env
     startCommand: |
-      echo "Starting initialization script..." && \
       cd /var/www/html && \
-      bash init.sh
+      php artisan migrate --force && \
+      php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_NAME
         value: OhayouBaku

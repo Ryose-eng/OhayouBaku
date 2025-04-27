@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
 WORKDIR /var/www/html
 
@@ -29,7 +29,12 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-# Expose port 8000 for PHP's built-in server
-EXPOSE 8000
+# Expose port
+EXPOSE ${PORT}
 
-ENTRYPOINT []
+# シェルスクリプトを追加
+COPY docker/php/start.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start.sh
+
+# デフォルトコマンドを設定
+ENTRYPOINT ["/usr/local/bin/start.sh"]
