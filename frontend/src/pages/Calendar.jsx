@@ -65,7 +65,7 @@ const CalendarPage = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/events`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/events`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -146,7 +146,7 @@ const CalendarPage = () => {
 
   const handleEventDrop = async (dropInfo) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/events/${dropInfo.event.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${dropInfo.event.id}`, {
         method: 'PUT',
         headers: {
           'Accept': 'application/json',
@@ -183,7 +183,7 @@ const CalendarPage = () => {
         formattedEnd = moment(newEvent.end).format('YYYY-MM-DD HH:mm:ss');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/events`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/events`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -236,7 +236,7 @@ const CalendarPage = () => {
 
   const deleteEvent = async (eventId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/events/${eventId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${eventId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -268,7 +268,7 @@ const CalendarPage = () => {
 
   const fetchTodos = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/todos`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/todos`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -286,7 +286,7 @@ const CalendarPage = () => {
     if (!newTodoTitle.trim()) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/todos`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/todos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ const CalendarPage = () => {
 
   const toggleTodo = async (id, completed) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/todos/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/todos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -330,7 +330,7 @@ const CalendarPage = () => {
 
   const deleteTodo = async (todoId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/todos/${todoId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/todos/${todoId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

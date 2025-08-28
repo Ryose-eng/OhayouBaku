@@ -19,7 +19,7 @@ const VitalForm = ({ token, onVitalAdded, onClose }) => {
   const createVital = async (data) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/vitals`, {
+      const response = await fetch(`${API_URL}/api/vitals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

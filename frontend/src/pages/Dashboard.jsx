@@ -29,7 +29,7 @@ const Dashboard = () => {
 
   const fetchVitals = async () => {
     try {
-      const response = await fetch(`${API_URL}/vitals`, {
+      const response = await fetch(`${API_URL}/api/vitals`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
