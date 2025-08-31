@@ -12,7 +12,7 @@ const CreateChat = () => {
   const [error, setError] = useState('');
   const [chatStatus, setChatStatus] = useState(null);
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
 
   useEffect(() => {
     if (!user) {
@@ -71,6 +71,7 @@ const CreateChat = () => {
 
       if (response.ok && data.success) {
         if (data.status === 'active') {
+          await updateUser();
           navigate(`/chat/${data.chatId}`);
         } else {
           setChatStatus({

@@ -53,6 +53,31 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
+  const updateUser = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user`, {
+          headers: {
+            'Authorization': `Bearer ${storedToken}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+          return userData;
+        }
+      } catch (error) {
+        console.error('User update error:', error);
+      }
+    }
+    return null;
+  };
+
   const isCaregiver = () => {
     return user?.caregiver === 1 || user?.caregiver === true;
   };
@@ -83,6 +108,7 @@ export const AuthProvider = ({ children }) => {
       token, 
       login, 
       logout,
+      updateUser,
       isCaregiver: isCaregiver(),
       hasCareRecipient: hasCareRecipient(),
       userId: user?.id

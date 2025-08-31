@@ -12,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const ChatRoom = () => {
   const { chatId } = useParams();
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -37,6 +37,8 @@ const ChatRoom = () => {
         if (response.ok && data.success) {
           setPartner(data.partner);
           setMessages(data.messages);
+          
+          await updateUser();
 
           // Socket.IO接続を修正
           const socket = io(`${import.meta.env.VITE_WS_URL}`, {
