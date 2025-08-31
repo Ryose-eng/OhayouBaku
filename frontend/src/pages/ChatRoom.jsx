@@ -42,14 +42,17 @@ const ChatRoom = () => {
 
           // Socket.IO接続を修正
           const socket = io(`${import.meta.env.VITE_WS_URL}`, {
-            path: '/socket.io',
-            transports: ['websocket', 'polling'],  // サーバーと同じ設定
+            path: '/socket.io/',
+            transports: ['polling', 'websocket'],
             query: { chatId },
             auth: { token },
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            timeout: 20000
+            reconnectionAttempts: 10,
+            reconnectionDelay: 2000,
+            timeout: 30000,
+            forceNew: true,
+            upgrade: true,
+            rememberUpgrade: false
           });
 
           socket.on('connect', () => {
@@ -58,6 +61,14 @@ const ChatRoom = () => {
 
           socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
+            console.log('Attempting to reconnect with polling only...');
+            
+            setTimeout(() => {
+              if (!socket.connected) {
+                socket.io.opts.transports = ['polling'];
+                socket.connect();
+              }
+            }, 3000);
           });
 
           socket.on('error', (error) => {
@@ -119,7 +130,7 @@ const ChatRoom = () => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket) return;
+    if (!newMessage.trim()) return;
 
     console.log('Attempting to send message:', {
       chatId,
@@ -128,17 +139,46 @@ const ChatRoom = () => {
     });
 
     try {
-      if (!socket.connected) {
-        console.error('Socket is not connected');
+      if (socket && socket.connected) {
+        socket.emit('sendMessage', {
+          chatId,
+          content: newMessage,
+          token
+        });
+        setNewMessage('');
         return;
       }
-      socket.emit('sendMessage', {
-        chatId,
-        content: newMessage,
-        token
+
+      console.log('Socket not connected, using API fallback');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          chat_id: chatId,
+          content: newMessage
+        })
       });
-      
-      setNewMessage('');
+
+      if (response.ok) {
+        const data = await response.json();
+        // メッセージをローカルに追加
+        setMessages(prevMessages => [...prevMessages, {
+          id: data.message.id,
+          content: newMessage,
+          chat_id: chatId,
+          user_id: data.message.user_id,
+          created_at: data.message.created_at,
+          is_mine: true
+        }]);
+        setNewMessage('');
+      } else {
+        throw new Error('API送信に失敗しました');
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setError('メッセージを送信できませんでした: ' + error.message);

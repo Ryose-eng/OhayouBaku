@@ -16,10 +16,13 @@ const io = new Server(httpServer, {
     credentials: true
   },
   path: '/socket.io/',
-  transports: ['websocket', 'polling'],
-  allowEIO3: true,  // Engine.IO v3のサポート
-  pingTimeout: 60000,  // タイムアウト設定
-  pingInterval: 25000  // ping間隔
+  transports: ['polling', 'websocket'],  // ポーリングを優先
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 10000,  // アップグレードタイムアウト
+  maxHttpBufferSize: 1e6,  // バッファサイズ
+  serveClient: false  // クライアントファイルの配信を無効化
 });
 
 // 静的ファイルの配信
