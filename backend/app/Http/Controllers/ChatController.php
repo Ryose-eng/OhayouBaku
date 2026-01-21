@@ -297,12 +297,15 @@ class ChatController extends Controller
                 
                 // pending状態のチャットがある場合
                 if ($chat->status === 'pending') {
-                    return response()->json([
-                        'success' => true,
-                        'chatId' => $chat->id,
-                        'status' => 'pending',
-                        'message' => '認証待ち中です。相手からの認証をお待ちください。'
-                    ]);
+                    if ($chat->user1_id === $currentUser->id) {
+                        return response()->json([
+                            'success' => true,
+                            'chatId' => $chat->id,
+                            'status' => 'pending',
+                            'message' => '認証待ち中です。相手からの認証をお待ちください。'
+                        ]);
+                    }
+                    continue;
                 }
             }
 

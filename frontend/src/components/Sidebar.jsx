@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ user }) => {
-  const { token } = useAuth();
+  const { token, hasCareRecipient  } = useAuth();
   const navigate = useNavigate();
   const userInitial = user?.name?.charAt(0) || '?';
 
@@ -21,20 +21,20 @@ const Sidebar = ({ user }) => {
       const data = await response.json();
 
       if (data.success && data.chatId) {
-        return data.chatId; // chatIdを直接返す
+        return { chatId: data.chatId, status: data.status };
       }
-      return null;
+      return { chatId: null, status: null };
     } catch (error) {
       console.error('チャット確認エラー:', error);
-      return null;
+      return { chatId: null, status: null };
     }
   };
 
   const handleChatClick = async (e) => {
     e.preventDefault();
-    const chatId = await checkExistingChat(); // chatIdを直接受け取る
+    const {chatId, status} = await checkExistingChat(); // chatIdを直接受け取る
     
-    if (chatId) {
+    if (status === 'active' && chatId) {
       navigate(`/chat/${chatId}`);
     } else {
       navigate('/chat/create');
