@@ -98,102 +98,109 @@ const Dashboard = () => {
   if (!user) {
     return null;
   }
-
-  return (
-    <AppContainer>
-      <Header title="バイタル管理" onLogout={handleLogout} />
-      <Sidebar user={user} />
-      <MainContent>
-        {authError ? (
+  if (authError) {
+    return (
+      <AppContainer>
+        <Header title="カレンダー" onLogout={logout} />
+        <Sidebar user={user} />
+        <MainContent>
           <AuthErrorContainer>
             <AuthErrorMessage>{authError}</AuthErrorMessage>
             <AuthErrorButton onClick={() => navigate('/chat/create')}>
               チャット認証へ進む
             </AuthErrorButton>
           </AuthErrorContainer>
-        ) : (
-          <>
-            <Section>
-              <SectionHeader>
-                <SectionTitle>バイタルトレンド</SectionTitle>
-                <AddVitalButton onClick={() => setShowVitalModal(true)}>
-                  バイタル登録
-                </AddVitalButton>
-              </SectionHeader>
-              <ChartContainer>
-                {vitals.length > 0 ? (
-                  <>
-                    <ChartTitle>血圧・脈拍の推移</ChartTitle>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={formatChartData(vitals)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="systolic" stroke="#ff4444" name="最高血圧" />
-                        <Line type="monotone" dataKey="diastolic" stroke="#2196f3" name="最低血圧" />
-                        <Line type="monotone" dataKey="pulse" stroke="#4caf50" name="脈拍" />
-                      </LineChart>
-                    </ResponsiveContainer>
+        </MainContent>
+        <Footer />
+      </AppContainer>
+    );
+  }
+  return (
+    <AppContainer>
+      <Header title="バイタル管理" onLogout={handleLogout} />
+      <Sidebar user={user} />
+      <MainContent>
+        <>
+          <Section>
+            <SectionHeader>
+              <SectionTitle>バイタルトレンド</SectionTitle>
+              <AddVitalButton onClick={() => setShowVitalModal(true)}>
+                バイタル登録
+              </AddVitalButton>
+            </SectionHeader>
+            <ChartContainer>
+              {vitals.length > 0 ? (
+                <>
+                  <ChartTitle>血圧・脈拍の推移</ChartTitle>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={formatChartData(vitals)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="systolic" stroke="#ff4444" name="最高血圧" />
+                      <Line type="monotone" dataKey="diastolic" stroke="#2196f3" name="最低血圧" />
+                      <Line type="monotone" dataKey="pulse" stroke="#4caf50" name="脈拍" />
+                    </LineChart>
+                  </ResponsiveContainer>
 
-                    <ChartTitle>体温・酸素濃度の推移</ChartTitle>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={formatChartData(vitals)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis yAxisId="temp" domain={[35, 42]} />
-                        <YAxis yAxisId="oxygen" orientation="right" domain={[80, 100]} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="temperature" stroke="#ff9800" name="体温" yAxisId="temp" />
-                        <Line type="monotone" dataKey="oxygen" stroke="#9c27b0" name="酸素濃度" yAxisId="oxygen" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </>
-                ) : (
-                  <NoDataMessage>グラフを表示するデータがありません</NoDataMessage>
-                )}
-              </ChartContainer>
-            </Section>
-            
-            <Section>
-              <SectionTitle>バイタル一覧</SectionTitle>
-              <VitalsListContainer>
-                {isLoading ? (
-                  <LoadingText>読み込み中...</LoadingText>
-                ) : vitals.length > 0 ? (
-                  <>
-                    <VitalsList>
-                      {vitals.slice(0, displayCount).map((vital) => (
-                        <VitalItem key={vital.id}>
-                          <VitalHeader>
-                            <VitalDate>{new Date(vital.created_at).toLocaleString()}</VitalDate>
-                          </VitalHeader>
-                          <VitalData>
-                            <DataItem>血圧: {vital.systolic}/{vital.diastolic} mmHg</DataItem>
-                            <DataItem>脈拍: {vital.pulse} bpm</DataItem>
-                            <DataItem>体温: {vital.temperature}℃</DataItem>
-                            <DataItem>SpO2: {vital.oxygen}%</DataItem>
-                            <DataItem>気分: {vital.mood === "happy" ? "😊" : vital.mood === "neutral" ? "😑" : "😣"}</DataItem>
-                            {vital.note && <DataNote>{vital.note}</DataNote>}
-                          </VitalData>
-                        </VitalItem>
-                      ))}
-                    </VitalsList>
-                    {vitals.length > displayCount && (
-                      <ShowMoreButton onClick={() => setDisplayCount(vitals.length)}>
-                        もっと見る
-                      </ShowMoreButton>
-                    )}
-                  </>
-                ) : (
-                  <NoDataMessage>バイタルデータがありません</NoDataMessage>
-                )}
-              </VitalsListContainer>
-            </Section>
-          </>
-        )}
+                  <ChartTitle>体温・酸素濃度の推移</ChartTitle>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={formatChartData(vitals)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis yAxisId="temp" domain={[35, 42]} />
+                      <YAxis yAxisId="oxygen" orientation="right" domain={[80, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="temperature" stroke="#ff9800" name="体温" yAxisId="temp" />
+                      <Line type="monotone" dataKey="oxygen" stroke="#9c27b0" name="酸素濃度" yAxisId="oxygen" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </>
+              ) : (
+                <NoDataMessage>グラフを表示するデータがありません</NoDataMessage>
+              )}
+            </ChartContainer>
+          </Section>
+          
+          <Section>
+            <SectionTitle>バイタル一覧</SectionTitle>
+            <VitalsListContainer>
+              {isLoading ? (
+                <LoadingText>読み込み中...</LoadingText>
+              ) : vitals.length > 0 ? (
+                <>
+                  <VitalsList>
+                    {vitals.slice(0, displayCount).map((vital) => (
+                      <VitalItem key={vital.id}>
+                        <VitalHeader>
+                          <VitalDate>{new Date(vital.created_at).toLocaleString()}</VitalDate>
+                        </VitalHeader>
+                        <VitalData>
+                          <DataItem>血圧: {vital.systolic}/{vital.diastolic} mmHg</DataItem>
+                          <DataItem>脈拍: {vital.pulse} bpm</DataItem>
+                          <DataItem>体温: {vital.temperature}℃</DataItem>
+                          <DataItem>SpO2: {vital.oxygen}%</DataItem>
+                          <DataItem>気分: {vital.mood === "happy" ? "😊" : vital.mood === "neutral" ? "😑" : "😣"}</DataItem>
+                          {vital.note && <DataNote>{vital.note}</DataNote>}
+                        </VitalData>
+                      </VitalItem>
+                    ))}
+                  </VitalsList>
+                  {vitals.length > displayCount && (
+                    <ShowMoreButton onClick={() => setDisplayCount(vitals.length)}>
+                      もっと見る
+                    </ShowMoreButton>
+                  )}
+                </>
+              ) : (
+                <NoDataMessage>バイタルデータがありません</NoDataMessage>
+              )}
+            </VitalsListContainer>
+          </Section>
+        </>
       </MainContent>
       <Footer />
       {showVitalModal && (

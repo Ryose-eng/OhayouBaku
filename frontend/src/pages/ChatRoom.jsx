@@ -10,6 +10,12 @@ import styled from 'styled-components';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/* WebSocketの有効/無効を設定 */
+const ENABLE_WS = String(import.meta.env.VITE_ENABLE_WS || '').toLowerCase() === 'true';
+
+/* ポーリング間隔を設定 */
+const POLL_INTERVAL_MS = Number(import.meta.env.VITE_CHAT_POLL_INTERVAL_MS || 3000);
+
 const ChatRoom = () => {
   const { chatId } = useParams();
   const { user, token, updateUser } = useAuth();
@@ -20,7 +26,37 @@ const ChatRoom = () => {
   const [partner, setPartner] = useState({});
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
+  const pollIntervalRef = useRef(null);
   const { userId } = useAuth();
+
+  // メッセージをポーリングで取得する関数
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/chat/${chatId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.success && data.messages) {
+        setMessages(prevMessages => {
+          // 既存のメッセージIDのセットを作成
+          const existingIds = new Set(prevMessages.map(msg => msg.id));
+          // 新しいメッセージのみを追加
+          const newMessages = data.messages.filter(msg => !existingIds.has(msg.id));
+          if (newMessages.length > 0) {
+            return [...prevMessages, ...newMessages];
+          }
+          return prevMessages;
+        });
+      }
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  };
 
   useEffect(() => {
     const initChat = async () => {
@@ -40,75 +76,93 @@ const ChatRoom = () => {
           
           await updateUser();
 
-          // Socket.IO接続を修正
-          const socket = io(`${import.meta.env.VITE_WS_URL}`, {
-            path: '/socket.io/',
-            transports: ['polling', 'websocket'],
-            query: { chatId },
-            auth: { token },
-            reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 2000,
-            timeout: 30000,
-            forceNew: true,
-            upgrade: true,
-            rememberUpgrade: false
-          });
+          // WebSocketが有効な場合のみSocket.IO接続を試みる
+          if (ENABLE_WS && import.meta.env.VITE_WS_URL) {
+            // Socket.IO接続
+            const socket = io(`${import.meta.env.VITE_WS_URL}`, {
+              path: '/socket.io/',
+              transports: ['polling', 'websocket'],
+              query: { chatId },
+              auth: { token },
+              reconnection: true,
+              reconnectionAttempts: 10,
+              reconnectionDelay: 2000,
+              timeout: 30000,
+              forceNew: true,
+              upgrade: true,
+              rememberUpgrade: false
+            });
 
-          socket.on('connect', () => {
-            console.log('Socket connected successfully with ID:', socket.id);
-          });
+            socket.on('connect', () => {
+              console.log('Socket connected successfully with ID:', socket.id);
+              // WebSocket接続成功時はポーリングを停止
+              if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+              }
+            });
 
-          socket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
-            console.log('Attempting to reconnect with polling only...');
-            
-            setTimeout(() => {
-              if (!socket.connected) {
-                socket.io.opts.transports = ['polling'];
+            socket.on('connect_error', (error) => {
+              console.error('Socket connection error:', error);
+              console.log('Falling back to polling mode...');
+              // WebSocket接続失敗時はポーリングを開始
+              if (!pollIntervalRef.current) {
+                pollIntervalRef.current = setInterval(fetchMessages, POLL_INTERVAL_MS);
+              }
+            });
+
+            socket.on('error', (error) => {
+              console.error('Socket error:', error);
+            });
+
+            socket.on('disconnect', (reason) => {
+              console.log('Socket disconnected:', reason);
+              // 切断時はポーリングにフォールバック
+              if (!pollIntervalRef.current) {
+                pollIntervalRef.current = setInterval(fetchMessages, POLL_INTERVAL_MS);
+              }
+              if (reason === 'io server disconnect') {
                 socket.connect();
               }
-            }, 3000);
-          });
-
-          socket.on('error', (error) => {
-            console.error('Socket error:', error);
-          });
-
-          socket.on('disconnect', (reason) => {
-            console.log('Socket disconnected:', reason);
-            if (reason === 'io server disconnect') {
-              socket.connect();
-            }
-          });
-
-          socket.on('receiveMessage', (message) => {
-            console.log('新しいメッセージを受信:', message);
-            setMessages(prevMessages => {
-              const messageExists = prevMessages.some(msg => msg.id === message.id);
-              if (messageExists) return prevMessages;
-              return [...prevMessages, {
-                ...message,
-                is_mine: message.user_id === userId
-              }];
             });
-          });
 
-          socket.on('messageError', (error) => {
-            console.error('Message error details:', error);
-            setError(error.error + (error.details ? `: ${error.details}` : ''));
-          });
+            socket.on('receiveMessage', (message) => {
+              console.log('新しいメッセージを受信:', message);
+              setMessages(prevMessages => {
+                const messageExists = prevMessages.some(msg => msg.id === message.id);
+                if (messageExists) return prevMessages;
+                return [...prevMessages, {
+                  ...message,
+                  is_mine: message.user_id === userId
+                }];
+              });
+            });
 
-          // デバッグ用のイベントリスナー
-          socket.onAny((eventName, ...args) => {
-            console.log('送信したイベント:', eventName, args);
-          });
+            socket.on('messageError', (error) => {
+              console.error('Message error details:', error);
+              setError(error.error + (error.details ? `: ${error.details}` : ''));
+            });
 
-          setSocket(socket);
+            // デバッグ用のイベントリスナー
+            socket.onAny((eventName, ...args) => {
+              console.log('送信したイベント:', eventName, args);
+            });
+
+            setSocket(socket);
+          } else {
+            // WebSocketが無効な場合はポーリングを開始
+            console.log('WebSocket disabled, using polling mode');
+            pollIntervalRef.current = setInterval(fetchMessages, POLL_INTERVAL_MS);
+          }
+
           setLoading(false);
 
           return () => {
             if (socket) socket.disconnect();
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
           };
         } else {
           setError('チャットルームが見つかりませんでした');
