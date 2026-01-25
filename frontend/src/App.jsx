@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ChatRoom from "./pages/ChatRoom";
 import CreateChat from "./pages/CreateChat"
 import Calendar from './pages/Calendar';
+import Demo from './pages/Demo';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/demo" element={<Demo />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/" element={<Navigate to="/posts" />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

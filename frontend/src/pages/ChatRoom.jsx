@@ -244,52 +244,56 @@ const ChatRoom = () => {
     return dayjs(dateString).format('YYYY/MM/DD HH:mm');
   };
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen">読み込み中...</div>;
-  }
-
-  if (error) {
-    return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
-  }
-
   return (
     <AppContainer>
       <Header title={`${partner.name || 'User'}とのチャット`} />
       <Sidebar user={user} />
       <MainContent>
-        <MessagesContainer>
-          {messages.length > 0 ? (
-            messages.map((msg, index) => (
-              <MessageWrapper key={index} isMine={msg.is_mine}>
-                <MessageBubble isMine={msg.is_mine}>
-                  <div>{msg.content}</div>
-                  <MessageTime isMine={msg.is_mine}>
-                    {formatDate(msg.created_at)}
-                  </MessageTime>
-                </MessageBubble>
-              </MessageWrapper>
-            ))
-          ) : (
-            <EmptyMessage>
-              メッセージを送信して会話を始めましょう
-            </EmptyMessage>
-          )}
-          <div ref={messagesEndRef} />
-        </MessagesContainer>
+        {loading ? (
+          <LoadingContainer>
+            <LoadingText>読み込み中...</LoadingText>
+          </LoadingContainer>
+        ) : error ? (
+          <ErrorContainer>
+            <ErrorMessage>{error}</ErrorMessage>
+          </ErrorContainer>
+        ) : (
+          <>
+            <MessagesContainer>
+              {messages.length > 0 ? (
+                messages.map((msg, index) => (
+                  <MessageWrapper key={index} isMine={msg.is_mine}>
+                    <MessageBubble isMine={msg.is_mine}>
+                      <div>{msg.content}</div>
+                      <MessageTime isMine={msg.is_mine}>
+                        {formatDate(msg.created_at)}
+                      </MessageTime>
+                    </MessageBubble>
+                  </MessageWrapper>
+                ))
+              ) : (
+                <EmptyMessage>
+                  メッセージを送信して会話を始めましょう
+                </EmptyMessage>
+              )}
+              <div ref={messagesEndRef} />
+            </MessagesContainer>
 
-        <InputFormContainer>
-          <InputForm onSubmit={sendMessage}>
-            <Input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="メッセージを入力..."
-            />
-            <SendButton type="submit" disabled={!newMessage.trim()}>
-              送信
-            </SendButton>
-          </InputForm>
-        </InputFormContainer>
+            <InputFormContainer>
+              <InputForm onSubmit={sendMessage}>
+                <Input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="メッセージを入力..."
+                />
+                <SendButton type="submit" disabled={!newMessage.trim()}>
+                  送信
+                </SendButton>
+              </InputForm>
+            </InputFormContainer>
+          </>
+        )}
       </MainContent>
       <Footer />
     </AppContainer>
@@ -419,6 +423,32 @@ const MessageTime = styled.div`
   color: ${props => props.isMine ? 'rgba(255, 255, 255, 0.7)' : '#666'};
   margin-top: 0.25rem;
   text-align: ${props => props.isMine ? 'right' : 'left'};
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 400px;
+`;
+
+const LoadingText = styled.p`
+  color: #0078a8;
+  font-size: 1.2rem;
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 400px;
+`;
+
+const ErrorMessage = styled.p`
+  color: #dc2626;
+  font-size: 1.2rem;
 `;
 
 export default ChatRoom;
